@@ -5,3 +5,4 @@
 *.vos
 *.vo
 *.cache
+.DS_Store
