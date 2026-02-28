@@ -17,6 +17,10 @@ Inductive day : Type :=
   | saturday
   | sunday.
 
+(* We could do this, and for endlessly in Rocq, but to be strict this is not an inductive obj *)
+Inductive fool : Type :=
+  | totally : fool -> fool.
+
 (* Hierarchical Type def *)
 Inductive rgb : Type :=
   | red

@@ -1,1 +1,12 @@
 -R . ""
+
+# So Why Use Constructive Logic?
+# You might wonder — why would Rocq choose a weaker system? There are actually strong reasons:
+# 1. Proofs are programs (Curry-Howard)
+# Every constructive proof directly corresponds to a computable program. If you prove exists x, P x constructively, you can actually run that proof to compute x. Classical proofs don't give you this.
+# 2. Stronger consistency guarantees
+# Adding fewer axioms means fewer chances of introducing contradictions. Classical axioms like LEM are believed consistent, but the fewer axioms you rely on, the more trustworthy your system.
+# 3. More informative proofs
+# A constructive proof tells you how something is true, not just that it is true. This is more useful in software verification and mathematics.
+# 4. You can always opt in
+# If you need classical reasoning, you can just Require Import Classical and get LEM. So you lose nothing — constructive is the safe default, classical is an available extension.

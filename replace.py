@@ -27,6 +27,7 @@ SYMBOL_MAP = {
     "  (* WORKED IN CLASS *)\n": "",
     "≤": "<=",
     "≥": ">=",
+    "⊢": "|-",
     # "Admitted.": "Qed.",
 }
 

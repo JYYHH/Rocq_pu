@@ -7,5 +7,6 @@ all:
 	rocq compile Tactics.v
 	rocq compile Logic.v
 	rocq compile IndProp.v
+	coqdoc *.v -d ./html
 clean: 
-	rm .*.aux *.vo *.glob *.vok *.vos
+	rm -f .*.aux *.vo *.glob *.vok *.vos html/*.html html/*.css

@@ -363,6 +363,21 @@ Proof.
     + right. apply conj. exact HQ. exact HR.
 Qed.
 
+Theorem and_distributes_over_or : forall P Q R : Prop,
+  P /\ (Q \/ R) <-> (P /\ Q) \/ (P /\ R).
+Proof.
+  intros P Q R.
+  split.
+  - (* L2R *)
+    intros [HP [HQ | HR]].
+    + left. split. exact HP. exact HQ.
+    + right. split. exact HP. exact HR.
+  - (* R2L *)
+    intros [[HP HQ] | [HP HR]].
+    + split. exact HP. left. exact HQ.
+    + split. exact HP. right. exact HR.
+Qed.
+
 Theorem and_relex : forall P : Prop,
   P <-> (P /\ P).
 Proof.
@@ -479,7 +494,7 @@ Proof.
 Qed.
 
 (* Programming with Propositions *)
-
+  (* Prop: "In" *)
 Fixpoint In {A : Type} (x : A) (l : list A) : Prop :=
   match l with
   | [] => False
@@ -545,6 +560,100 @@ Proof.
     reflexivity.
 Qed.
 
+Theorem In_app_if_l : forall A l l' (a:A),
+  In a l -> In a (l ++ l').
+Proof.
+  intros A l l' a H.
+  simpl.
+  apply (or_intro_l (In a l) (In a l')) in H.
+  rewrite <- In_app_iff in H.
+  exact H.
+Qed.
+
+Theorem In_app_if_r : forall A l l' (a:A),
+  In a l' -> In a (l ++ l').
+Proof.
+  intros A l l' a H.
+  simpl.
+  apply (or_intro_l (In a l') (In a l)) in H.
+  apply or_commut in H.
+  rewrite <- In_app_iff in H.
+  exact H.
+Qed.
+
+Theorem Not_In_app_iff : forall A l l' (a:A),
+  ~(In a (l++l')) <-> ~(In a l) /\ ~(In a l').
+Proof.
+  intros A l. 
+  induction l as [|a' l1 IH].
+  - intros l' a. simpl. 
+    split.
+    + intros H. split. intros Hnot. contradiction. exact H.
+    + intros [_ H]. exact H.
+  - intros l' a. simpl.
+    split.
+    + intros Hlong. split.
+      * intros Hsh. 
+        assert (Hbad : a' = a \/ In a (l1 ++ l')).
+        {
+          destruct Hsh as [Hle | Hri].
+          - left. exact Hle.
+          - right. exact (In_app_if_l A l1 l' a Hri). 
+        }
+        apply Hlong in Hbad.
+        contradiction.
+      * intros Hin.
+        apply (In_app_if_r A l1 l' a) in Hin.
+        apply (or_intro_l (In a (l1 ++ l')) (a' = a)) in Hin.
+        apply or_commut in Hin.
+        apply Hlong in Hin.
+        contradiction.
+    + intros [Hnot1 Hnot2] Hnot3.
+      destruct Hnot3 as [Hc1 | Hc2].
+      * apply (or_intro_l (a' = a) (In a l1)) in Hc1.
+        apply Hnot1 in Hc1. contradiction.
+      * apply In_app_iff in Hc2.
+        destruct Hc2 as [Hcc1 | Hcc2].
+        apply (or_intro_l (In a l1) (a' = a)) in Hcc1.
+        apply or_commut in Hcc1.
+        apply Hnot1 in Hcc1.
+        contradiction.
+        apply Hnot2 in Hcc2.
+        contradiction.
+Qed.
+
+Theorem In_rev : forall A l (a:A),
+  In a l -> In a (rev l).
+Proof.
+  intros A l a.
+  induction l as [| h t IH].
+  - intros Hin. simpl in Hin. contradiction.
+  - intros Hin. 
+    replace (h :: t) with ([h] ++ t).
+    rewrite -> rev_app_distr.
+    rewrite -> In_app_iff.
+    simpl in Hin.
+    destruct Hin as [Hc1 | Hc2].
+    + right. simpl. left. exact Hc1.
+    + apply IH in Hc2. left. exact Hc2.
+    + simpl. reflexivity.
+Qed.
+
+Lemma In_split : forall (X:Type) (x:X) (l:list X),
+  In x l ->
+  exists l1 l2, l = l1 ++ x :: l2.
+Proof.
+  intros X x l.
+  induction l as [| h t IH].
+  - intros H. simpl in H. contradiction.
+  - intros H. simpl in H.
+    destruct H as [H1 | H2].
+    + exists [ ], t. simpl. rewrite -> H1. reflexivity.
+    + pose proof (IH H2) as [l1 [l2 H2']].
+      exists ([h] ++ l1), l2. simpl. rewrite -> H2'. reflexivity.
+Qed.
+
+  (* Prop: "All" *)
 Fixpoint All {T : Type} (P : T -> Prop) (l : list T) : Prop :=
   match l with
   | [] => True
@@ -811,12 +920,18 @@ Qed.
 
   (* Classical vs. Constructive Logic *)
   (* How to make P \/ ~P = Ture? Need P to be decidable *)
-
+    (* But there are surely some types of propositions which are true under the "excluded middle"
+      e.g. 
+      1. le / lt / ge / gt, see "excluded_middle_leltgegt"
+    *)
   (* Note that, adding the below axiom will keep Rocq consistent as well *)
 (* Axiom excluded_middle : forall P, P \/ ~ P. *)
 Definition excluded_middle := forall P : Prop,
   P \/ ~ P.
 
+  (* This theorem is like, if a Prop could be fully decided by a boolean, 
+    it will be within the domain of the classical logic *)
+  (* We will see a similar thing as IndProp "reflect" in IndProp.v *)
 Theorem restricted_excluded_middle : forall P b,
   (P <-> b = true) -> P \/ ~ P.  (* LHS is like P is decidable *)
 Proof.

@@ -93,6 +93,16 @@ Proof.
   reflexivity.
 Qed.
 
+Theorem add_shuffle4 : forall n m p q: nat,
+  (n + m) + (p + q) = (n + p) + (m + q).
+Proof.
+  intros n m p q.
+  rewrite <- add_assoc.
+  rewrite <- add_assoc.
+  rewrite -> (add_shuffle3 m p q).
+  reflexivity.
+Qed.
+
 Lemma mul_m_Sn : forall n m : nat,
   m * S n = m + m * n.
 Proof.
@@ -327,3 +337,22 @@ Proof.
     simpl. reflexivity.
   - (* S n' *)
     simpl. rewrite IHn'. reflexivity. Qed.
+
+
+(* Co-induction *)
+CoInductive stream : Type :=
+  | Cons : nat -> stream -> stream.
+
+CoInductive stream_eq : stream -> stream -> Prop :=
+  | eq_cons : forall x s1 s2, stream_eq s1 s2 -> stream_eq (Cons x s1) (Cons x s2).
+
+Theorem stream_eq_refl : forall s, stream_eq s s.
+Proof.
+  cofix CIH.
+  intro s.
+  destruct s as [x s'].
+  apply eq_cons.
+  apply CIH.
+Qed.
+(* 
+Check (fun n:nat => S(pred n)). *)

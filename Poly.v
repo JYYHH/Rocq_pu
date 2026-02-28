@@ -79,7 +79,7 @@ Fixpoint app {X : Type} (l1 l2 : list X) : list X := (* append *)
 Notation "x ++ y" := (app x y)
                      (at level 60, right associativity).
 
-Theorem app_nil : forall X (l : list X),
+Theorem app_nil_r : forall X (l : list X),
   l ++ [] = l.
 Proof.
   intros X l.
@@ -99,6 +99,16 @@ Proof.
     reflexivity. 
 Qed.
 
+Theorem app_assoc4 : forall X (l1 l2 l3 l4 : list X),
+  l1 ++ (l2 ++ (l3 ++ l4)) = ((l1 ++ l2) ++ l3) ++ l4.
+  Proof.
+  intros X l1 l2 l3 l4.
+  rewrite -> (app_assoc_poly X l1 l2 l3).
+  rewrite -> (app_assoc_poly X l1 (l2 ++ l3) l4).
+  rewrite -> (app_assoc_poly X l2 l3 l4).
+  reflexivity.
+Qed.
+
 Fixpoint length {X : Type} (l : list X) : nat :=
   match l with
   | nil => O
@@ -109,6 +119,53 @@ Fixpoint rev {X : Type} (l : list X) : list X :=
   | nil => nil
   | h :: t => rev t ++ [h]
   end.
+
+Theorem nil_length : forall (X : Type) (l : list X),
+  length l = 0 <-> l = [ ].
+Proof.
+  intros X l. split.
+  - intros H. 
+    destruct l as [| h t].
+    + reflexivity.
+    + simpl in H. discriminate.
+  - intros H.
+    rewrite -> H.
+    simpl. reflexivity.
+Qed.
+
+Theorem app_length : forall (X : Type) (l1 l2 : list X),
+  length (l1 ++ l2) = (length l1) + (length l2).
+Proof.
+  intros X l1 l2.
+  induction l1 as [| n1 l1' IHl1'].
+  - reflexivity.
+  - simpl. rewrite IHl1'. reflexivity.
+Qed.
+
+Theorem rev_app_distr: forall (X : Type) (l1 l2 : list X),
+  rev (l1 ++ l2) = rev l2 ++ rev l1.
+Proof.
+  intros X l1 l2.
+  induction l1 as [ | n l1' IHl1'].
+  - rewrite app_nil_r.
+    reflexivity.
+  - simpl.
+    rewrite IHl1'.
+    rewrite app_assoc_poly.
+    reflexivity.
+Qed.
+
+Theorem rev_involutive : forall (X : Type) (l : list X),
+  rev (rev l) = l.
+Proof.
+  intros X l.
+  induction l as [ | n l' IHl'].
+  - reflexivity.
+  - simpl.
+    rewrite -> rev_app_distr.
+    rewrite -> IHl'.
+    reflexivity.
+Qed.
 
 
 (* High-Order functions *)
